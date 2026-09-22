@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+fastmcp
+mcp>=2
+groq
+httpx
+asyncpg
+pydantic>=2
+python-dotenv
+websockets
+pytest
+pytest-asyncio
