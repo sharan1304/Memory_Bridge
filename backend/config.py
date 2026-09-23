@@ -12,7 +12,7 @@ load_dotenv()
 
 class Settings(BaseModel):
     groq_api_key: str = ""
-    groq_model: str = "llama-3.1-8b-instant"
+    groq_model: str = "openai/gpt-oss-20b"
     qdrant_url: str = ""
     qdrant_api_key: str = ""
     qdrant_collection: str = "mennbridge"
@@ -25,7 +25,7 @@ class Settings(BaseModel):
 def get_settings() -> Settings:
     return Settings(
         groq_api_key=os.getenv("GROQ_API_KEY", ""),
-        groq_model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
+        groq_model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
         qdrant_url=os.getenv("QDRANT_URL", ""),
         qdrant_api_key=os.getenv("QDRANT_API_KEY", ""),
         qdrant_collection=os.getenv("QDRANT_COLLECTION", "mennbridge"),

@@ -130,7 +130,7 @@ dashboard's Decay Tracker panel.
 | MCP server | FastMCP on FastAPI — streamable-HTTP (`/mcp`) and SSE (`/sse`) transports |
 | Memory store | Qdrant Cloud — one point per memory, full Memory as payload |
 | Embeddings | sentence-transformers `all-MiniLM-L6-v2` (384-d, cosine), baked into the image |
-| Memory extraction | Groq (Llama 3.1 8B Instant) — background extraction from `checkpoint()` summaries |
+| Memory extraction | Groq (`openai/gpt-oss-20b`) — background extraction from `checkpoint()` summaries |
 | Event log | PostgreSQL via `asyncpg` — dashboard event history and session bookkeeping only, not memory content |
 | Dashboard backend | FastAPI REST API + WebSocket (`/dashboard`) |
 | Dashboard frontend | React 18 + Vite |

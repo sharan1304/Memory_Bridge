@@ -79,13 +79,13 @@ async def test_extract_and_store_supersedes_existing_current_state(adapter):
 @pytest.mark.asyncio
 async def test_extract_and_store_sends_correct_model_and_temperature(adapter, monkeypatch):
     sm, _fake = adapter
-    monkeypatch.setenv("GROQ_MODEL", "llama-3.1-8b-instant")
+    monkeypatch.setenv("GROQ_MODEL", "openai/gpt-oss-20b")
     from config import get_settings
     get_settings.cache_clear()
 
     client = FakeGroqClient(response_json=[])
     await extract_and_store("p1", "s1", "codex", "nothing notable happened but fixed a typo", sm, client=client)
 
-    assert client.calls[0]["model"] == "llama-3.1-8b-instant"
+    assert client.calls[0]["model"] == "openai/gpt-oss-20b"
     assert client.calls[0]["temperature"] == 0.1
     get_settings.cache_clear()
