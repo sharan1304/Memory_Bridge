@@ -49,8 +49,8 @@ async def test_extract_and_store_stores_plain_types_directly(adapter):
     assert len(memories) == 1
     assert len(fake.records) == 1
     stored = next(iter(fake.records.values()))
-    assert stored["raw_content"] == "chose FastAPI over Flask"
-    assert stored["external_type"] == "decision"
+    assert stored["content"] == "chose FastAPI over Flask"
+    assert stored["type"] == "decision"
 
 
 @pytest.mark.asyncio

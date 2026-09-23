@@ -7,7 +7,7 @@ from typing import Any, get_args
 
 from groq import AsyncGroq
 
-from adapters.sharedmenn import SharedMENNAdapter
+from adapters.qdrant import QdrantAdapter
 from config import get_settings
 from schema import SINGLETON_TYPES, Agent, Memory, MemoryType
 
@@ -102,7 +102,7 @@ async def extract_and_store(
     session_id: str,
     agent: Agent,
     summary: str,
-    adapter: SharedMENNAdapter,
+    adapter: QdrantAdapter,
     client: AsyncGroq | None = None,
 ) -> list[Memory]:
     items = await call_groq_extraction(summary, client=client)

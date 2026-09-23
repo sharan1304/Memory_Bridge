@@ -1,16 +1,19 @@
 """FastAPI entrypoint: mounts the MCP server and the dashboard API/WebSocket."""
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+import mcp_server
 from config import get_settings
 from dashboard.api import router as dashboard_router
 from dashboard.ws import router as ws_router
 from mcp_server import mcp, registered_resource_uris, registered_tool_names
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # Claude Code connects over streamable-HTTP at /mcp. Codex, per its own MCP
@@ -36,6 +39,11 @@ async def lifespan(app: FastAPI):
     resource_uris = await registered_resource_uris()
     print(f"MENNBridge MCP tools registered: {tool_names}", flush=True)
     print(f"MENNBridge MCP resources registered: {resource_uris}", flush=True)
+    try:
+        await mcp_server.adapter.warmup()
+    except Exception:
+        # Tools still start; get_context falls back until Qdrant is reachable.
+        logger.exception("memory store warmup failed")
     async with mcp_app.lifespan(app):
         async with sse_app.lifespan(app):
             yield

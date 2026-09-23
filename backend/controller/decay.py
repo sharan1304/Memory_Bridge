@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from adapters.sharedmenn import SharedMENNAdapter
+from adapters.qdrant import QdrantAdapter
 from schema import PERMANENT_TYPES, Memory, MemoryType
 
 HALF_LIFE_DAYS: dict[MemoryType, float] = {
@@ -32,7 +32,7 @@ def current_importance(memory: Memory, now: datetime | None = None) -> float:
 
 
 async def decay_ranked(
-    project_id: str, adapter: SharedMENNAdapter, now: datetime | None = None
+    project_id: str, adapter: QdrantAdapter, now: datetime | None = None
 ) -> list[dict]:
     """Non-permanent, active memories sorted by importance ascending."""
     memories = await adapter.list_all(project_id)
@@ -45,7 +45,7 @@ async def decay_ranked(
     return ranked
 
 
-async def reinforce(memory_id: str, project_id: str, adapter: SharedMENNAdapter) -> Memory | None:
+async def reinforce(memory_id: str, project_id: str, adapter: QdrantAdapter) -> Memory | None:
     memory = await adapter.get(project_id, memory_id)
     if memory is None:
         return None

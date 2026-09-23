@@ -12,7 +12,7 @@ from __future__ import annotations
 from difflib import SequenceMatcher
 from itertools import combinations
 
-from adapters.sharedmenn import SharedMENNAdapter
+from adapters.qdrant import QdrantAdapter
 from schema import Memory
 
 CONFLICT_TYPES = ("decision", "current_state", "next_step", "bottleneck")
@@ -32,7 +32,7 @@ def _looks_contradictory(a: str, b: str) -> bool:
     return any(marker in lowered for marker in CONTRADICTION_MARKERS)
 
 
-async def find_conflicts(project_id: str, adapter: SharedMENNAdapter) -> list[dict]:
+async def find_conflicts(project_id: str, adapter: QdrantAdapter) -> list[dict]:
     memories = await adapter.list_all(project_id)
     active = [m for m in memories if m.superseded_by is None and m.type in CONFLICT_TYPES]
 

@@ -34,8 +34,9 @@ MENNBridge exposes two MCP tools:
 MENNBridge is a **called service, not a background monitor** — it does no
 polling and holds no state between calls. It wakes up only when an agent
 calls `get_context()` or `checkpoint()`, does its work, and goes back to
-being inert. All memory content lives in SharedMENN, a separate MCP server;
-MENNBridge is the controller and typed schema in front of it, plus a
+being inert. All memory content lives in Qdrant Cloud (vectors embedded
+locally with all-MiniLM-L6-v2); MENNBridge is the controller and typed
+schema in front of it, plus a
 dashboard for inspecting what's stored.
 
 Since MCP clients differ in what they support, the same context is also
@@ -116,9 +117,9 @@ dashboard's Decay Tracker panel.
                      │  └──────────────┐
                      ▼                 ▼
         ┌────────────────────┐  ┌─────────────┐
-        │     SharedMENN      │  │  Dashboard  │
-        │ (ChromaDB + Postgres│  │  UI (React) │
-        │  memory store)      │  │             │
+        │    Qdrant Cloud     │  │  Dashboard  │
+        │  (vector memory     │  │  UI (React) │
+        │   store)            │  │             │
         └─────────────────────┘  └─────────────┘
 ```
 
@@ -127,7 +128,8 @@ dashboard's Decay Tracker panel.
 | Layer | Technology |
 |---|---|
 | MCP server | FastMCP on FastAPI — streamable-HTTP (`/mcp`) and SSE (`/sse`) transports |
-| Memory store | SharedMENN (ChromaDB + Postgres metadata) — separate, existing MCP server |
+| Memory store | Qdrant Cloud — one point per memory, full Memory as payload |
+| Embeddings | sentence-transformers `all-MiniLM-L6-v2` (384-d, cosine), baked into the image |
 | Memory extraction | Groq (Llama 3.1 8B Instant) — background extraction from `checkpoint()` summaries |
 | Event log | PostgreSQL via `asyncpg` — dashboard event history and session bookkeeping only, not memory content |
 | Dashboard backend | FastAPI REST API + WebSocket (`/dashboard`) |
@@ -155,8 +157,8 @@ live on the same project:
 ### Prerequisites
 
 - Docker + Docker Compose
-- A running [SharedMENN](#) instance — MENNBridge does not start or bundle
-  SharedMENN itself, it only connects to it
+- A Qdrant Cloud cluster (free tier at [cloud.qdrant.io](https://cloud.qdrant.io)) —
+  the collection is created automatically on first run
 - A free Groq API key from [console.groq.com](https://console.groq.com)
 
 ### Setup
@@ -170,7 +172,10 @@ cp .env.example .env
 Fill in `.env`:
 
 - `GROQ_API_KEY` — your Groq key
-- `SHAREDMENN_URL` — wherever your SharedMENN server is already running
+- `QDRANT_URL`, `QDRANT_API_KEY` — your Qdrant Cloud cluster URL and API key
+  (`QDRANT_COLLECTION` defaults to `mennbridge`)
+- On a TLS-inspecting network (corporate proxy), put its root CA in
+  `backend/certs/` — see [backend/certs/README.md](backend/certs/README.md)
 - `DATABASE_URL` — leave as the Docker Compose default unless you're not
   using Docker
 - `MENNBRIDGE_PROJECT` — the project identifier this deployment serves
@@ -289,9 +294,9 @@ Related work: [MemGPT](https://arxiv.org/abs/2310.08560),
 
 ## Test Results
 
-- **58 backend tests passing** (5 skipped — Postgres-backed tests that need
-  `TEST_DATABASE_URL`), run with `pytest` + `pytest-asyncio` against an
-  in-memory fake SharedMENN server.
+- Backend tests run with `pytest` + `pytest-asyncio` against Qdrant's
+  in-memory local mode (5 Postgres-backed tests skip without
+  `TEST_DATABASE_URL`).
 - **Live verified:** Claude Code and Codex cross-agent handoff — see
   [Verified Cross-Agent Demo](#verified-cross-agent-demo) above.
 

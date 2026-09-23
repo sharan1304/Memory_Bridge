@@ -1,4 +1,4 @@
-"""Dashboard API tests. Uses the same fake SharedMENN as the adapter tests
+"""Dashboard API tests. Uses the same in-memory Qdrant as the adapter tests
 (via the `adapter` fixture in conftest.py), and the real test Postgres for
 event/agent endpoints (skipped without it).
 """

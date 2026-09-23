@@ -5,12 +5,13 @@ from fastmcp import Client
 
 import controller.extractor as extractor
 import mcp_server
+from schema import Memory
 from tests.fake_groq import FakeGroqClient
 
 
 @pytest.fixture
 def wired_mcp(adapter, monkeypatch):
-    """Point the module-level adapter at a fake SharedMENN server, and the
+    """Point the module-level adapter at an in-memory Qdrant, and the
     background Groq extraction call at a fake client, so no real network
     traffic ever leaves the test."""
     test_adapter, fake = adapter
@@ -71,22 +72,13 @@ async def test_context_resource_matches_get_context_tool(wired_mcp):
 @pytest.mark.asyncio
 async def test_memories_resource_returns_active_memories_as_json(wired_mcp, adapter):
     mcp, _fake = wired_mcp
-    _test_adapter, fake = adapter
+    test_adapter, _fake = adapter
     async with Client(mcp) as client:
-        # checkpoint stores nothing here (no signal), so seed a memory directly
-        # through the fake SharedMENN server the way remember() would.
-        fake.records["mem_0"] = {
-            "id": "mem_0",
-            "project": "p1",
-            "raw_content": "decided to use FastAPI",
-            "compressed_content": "decided to use FastAPI",
-            "session_id": "s1",
-            "superseded_by": None,
-            "external_type": "decision",
-            "external_agent": "claude-code",
-            "external_importance": 1.0,
-            "created_at": "2024-01-01T00:00:00+00:00",
-        }
+        # checkpoint stores nothing here (no signal), so seed a memory directly.
+        await test_adapter.store(Memory(
+            id="mem_0", project_id="p1", session_id="s1", type="decision",
+            content="decided to use FastAPI", agent="claude-code",
+        ))
         resource_result = await client.read_resource("mennbridge://memories")
         assert resource_result[0].mime_type == "application/json"
         data = json.loads(resource_result[0].text)

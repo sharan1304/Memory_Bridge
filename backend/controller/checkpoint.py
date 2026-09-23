@@ -6,7 +6,7 @@ import logging
 
 from groq import AsyncGroq
 
-from adapters.sharedmenn import SharedMENNAdapter
+from adapters.qdrant import QdrantAdapter
 from controller.extractor import extract_and_store
 from schema import Agent
 
@@ -45,7 +45,7 @@ async def checkpoint(
     summary: str,
     status: str,
     files_changed: list[str],
-    adapter: SharedMENNAdapter,
+    adapter: QdrantAdapter,
     groq_client: AsyncGroq | None = None,
 ) -> dict:
     """Returns immediately; storage runs in the background when signal is found."""
@@ -63,17 +63,16 @@ async def _extract_and_store_safely(
     session_id: str,
     agent: Agent,
     summary: str,
-    adapter: SharedMENNAdapter,
+    adapter: QdrantAdapter,
     groq_client: AsyncGroq | None,
 ) -> None:
     # Runs detached from the MCP call, so nothing here may propagate - an
-    # unreachable SharedMENN (surfaced as an ExceptionGroup) or a Groq failure
-    # is logged and the checkpoint is dropped.
+    # unreachable Qdrant or a Groq failure is logged and the checkpoint is dropped.
     try:
         await extract_and_store(project_id, session_id, agent, summary, adapter, client=groq_client)
     except Exception:
         logger.exception(
-            "background memory extraction failed for project=%s (SharedMENN at %s)",
+            "background memory extraction failed for project=%s (memory store at %s)",
             project_id,
-            adapter.base_url,
+            adapter.url,
         )

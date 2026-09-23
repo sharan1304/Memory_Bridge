@@ -3,6 +3,8 @@ uvicorn[standard]
 fastmcp
 mcp>=2
 groq
+qdrant-client
+sentence-transformers
 httpx
 asyncpg
 pydantic>=2

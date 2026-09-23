@@ -13,7 +13,7 @@ from typing import Callable
 
 from fastmcp import FastMCP
 
-from adapters.sharedmenn import SharedMENNAdapter
+from adapters.qdrant import QdrantAdapter
 from config import get_settings
 from controller.checkpoint import checkpoint as run_checkpoint
 from controller.get_context import get_context as run_get_context
@@ -23,10 +23,10 @@ from schema import Agent, SessionEvent
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-adapter = SharedMENNAdapter(
-    base_url=settings.sharedmenn_url,
-    token=settings.sharedmenn_token,
-    verify_ssl=settings.sharedmenn_verify_ssl,
+adapter = QdrantAdapter(
+    url=settings.qdrant_url,
+    api_key=settings.qdrant_api_key,
+    collection=settings.qdrant_collection,
 )
 
 mcp = FastMCP("mennbridge")
