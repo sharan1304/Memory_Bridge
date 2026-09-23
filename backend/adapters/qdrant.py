@@ -34,6 +34,12 @@ _INDEXED_FIELDS = ("project_id", "type", "superseded_by")
 
 _SCROLL_PAGE = 256
 
+# The client's 5s default is too short for the first request after a restart
+# on TLS-inspecting corporate networks. qdrant-client takes a single integer
+# applied to connect and read alike (and sent as the server-side query
+# timeout), so there's no separate connect timeout.
+TIMEOUT_SECONDS = 60
+
 Embedder = Callable[[Sequence[str]], list[list[float]]]
 
 
@@ -76,7 +82,7 @@ class QdrantAdapter:
         # check_compatibility would make a blocking request to the server at
         # construction time, i.e. when mcp_server is imported.
         self.client = client or AsyncQdrantClient(
-            url=url, api_key=api_key or None, check_compatibility=False
+            url=url, api_key=api_key or None, check_compatibility=False, timeout=TIMEOUT_SECONDS
         )
         self._embedder = embedder
         self._collection_ready = False
