@@ -26,6 +26,7 @@ from typing import Any, Iterable
 import httpx
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
+from mcp.shared._httpx_utils import MCP_DEFAULT_SSE_READ_TIMEOUT, MCP_DEFAULT_TIMEOUT
 
 from schema import Memory, MemoryType
 
@@ -70,7 +71,12 @@ class SharedMENNAdapter:
         return {"Authorization": f"Bearer {self.token}"} if self.token else {}
 
     async def _call_tool(self, tool: str, arguments: dict[str, Any]) -> Any:
-        async with httpx.AsyncClient(headers=self._headers(), verify=self.verify_ssl) as http_client:
+        # Passing our own client bypasses the MCP SDK's timeouts, leaving httpx's
+        # 5s default - too short for SharedMENN behind a tunnel. Mirror the SDK's.
+        timeout = httpx.Timeout(MCP_DEFAULT_TIMEOUT, read=MCP_DEFAULT_SSE_READ_TIMEOUT)
+        async with httpx.AsyncClient(
+            headers=self._headers(), verify=self.verify_ssl, timeout=timeout
+        ) as http_client:
             async with streamable_http_client(self.base_url, http_client=http_client) as (read, write):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
