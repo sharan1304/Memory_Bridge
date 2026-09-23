@@ -66,7 +66,14 @@ async def _extract_and_store_safely(
     adapter: SharedMENNAdapter,
     groq_client: AsyncGroq | None,
 ) -> None:
+    # Runs detached from the MCP call, so nothing here may propagate - an
+    # unreachable SharedMENN (surfaced as an ExceptionGroup) or a Groq failure
+    # is logged and the checkpoint is dropped.
     try:
         await extract_and_store(project_id, session_id, agent, summary, adapter, client=groq_client)
     except Exception:
-        logger.exception("background memory extraction failed for project=%s", project_id)
+        logger.exception(
+            "background memory extraction failed for project=%s (SharedMENN at %s)",
+            project_id,
+            adapter.base_url,
+        )

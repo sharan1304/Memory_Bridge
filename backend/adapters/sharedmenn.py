@@ -54,16 +54,23 @@ def _importance_to_enum(importance: float) -> str:
 
 
 class SharedMENNAdapter:
-    def __init__(self, base_url: str, token: str = ""):
+    def __init__(self, base_url: str, token: str = "", verify_ssl: bool = True):
         self.base_url = base_url
         self.token = token
+        # False only for networks whose TLS inspection re-signs traffic with a
+        # CA the container doesn't trust (SHAREDMENN_VERIFY_SSL=false).
+        self.verify_ssl = verify_ssl
 
     async def aclose(self) -> None:
         # Each call opens and closes its own MCP session - nothing to hold open.
         pass
 
+    def _headers(self) -> dict[str, str]:
+        # No token means local dev against a SharedMENN running without auth.
+        return {"Authorization": f"Bearer {self.token}"} if self.token else {}
+
     async def _call_tool(self, tool: str, arguments: dict[str, Any]) -> Any:
-        async with httpx.AsyncClient(headers={"Authorization": f"Bearer {self.token}"}) as http_client:
+        async with httpx.AsyncClient(headers=self._headers(), verify=self.verify_ssl) as http_client:
             async with streamable_http_client(self.base_url, http_client=http_client) as (read, write):
                 async with ClientSession(read, write) as session:
                     await session.initialize()

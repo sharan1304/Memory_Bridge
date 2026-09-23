@@ -15,6 +15,7 @@ class Settings(BaseModel):
     groq_model: str = "llama-3.1-8b-instant"
     sharedmenn_url: str = ""
     sharedmenn_token: str = ""
+    sharedmenn_verify_ssl: bool = True
     database_url: str = ""
     mennbridge_project: str = ""
     port: int = 8000
@@ -27,6 +28,7 @@ def get_settings() -> Settings:
         groq_model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
         sharedmenn_url=os.getenv("SHAREDMENN_URL", ""),
         sharedmenn_token=os.getenv("SHAREDMENN_TOKEN", ""),
+        sharedmenn_verify_ssl=os.getenv("SHAREDMENN_VERIFY_SSL", "true").lower() == "true",
         database_url=os.getenv("DATABASE_URL", ""),
         mennbridge_project=os.getenv("MENNBRIDGE_PROJECT", ""),
         port=int(os.getenv("PORT", "8000")),

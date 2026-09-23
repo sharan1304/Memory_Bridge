@@ -1,8 +1,12 @@
 """Builds the handoff brief returned by the get_context() MCP tool."""
 from __future__ import annotations
 
+import logging
+
 from adapters.sharedmenn import SharedMENNAdapter
 from schema import Memory
+
+logger = logging.getLogger(__name__)
 
 # Permanent project facts: always fetched in full (type filter only, no
 # semantic gate), up to these caps. A new agent must see every decision and
@@ -39,6 +43,13 @@ SECTION_ORDER = ("decision", "failed_attempt", "bottleneck", "test_result", "pro
 
 FALLBACK_QUERY = "project context and recent progress"
 
+UNAVAILABLE_BRIEF = (
+    "CURRENT STATE: SharedMENN is unavailable - no stored project memory could be retrieved.\n"
+    "\n"
+    "NEXT STEP:\n"
+    "• Proceed from the repository itself; prior decisions and failed attempts are not loaded.\n"
+)
+
 
 def _format_brief(
     current_state: Memory | None,
@@ -69,7 +80,24 @@ def _format_brief(
 
 
 async def get_context(project_id: str, adapter: SharedMENNAdapter) -> tuple[str, list[str]]:
-    """Returns (handoff_brief, memory_ids_retrieved)."""
+    """Returns (handoff_brief, memory_ids_retrieved).
+
+    Never raises on SharedMENN failures: an unreachable SharedMENN (network,
+    TLS, auth - the MCP client surfaces these as an ExceptionGroup from its
+    TaskGroup) yields a minimal brief saying so, rather than a tool error.
+    """
+    try:
+        return await _build_context(project_id, adapter)
+    except Exception:
+        logger.exception(
+            "SharedMENN unavailable at %s; returning fallback brief for project=%s",
+            adapter.base_url,
+            project_id,
+        )
+        return UNAVAILABLE_BRIEF, []
+
+
+async def _build_context(project_id: str, adapter: SharedMENNAdapter) -> tuple[str, list[str]]:
     current_state_list = await adapter.fetch_by_type(project_id, "current_state", limit=1)
     next_step_list = await adapter.fetch_by_type(project_id, "next_step", limit=1)
 

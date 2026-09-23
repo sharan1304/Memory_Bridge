@@ -23,7 +23,11 @@ from schema import Agent, SessionEvent
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-adapter = SharedMENNAdapter(base_url=settings.sharedmenn_url, token=settings.sharedmenn_token)
+adapter = SharedMENNAdapter(
+    base_url=settings.sharedmenn_url,
+    token=settings.sharedmenn_token,
+    verify_ssl=settings.sharedmenn_verify_ssl,
+)
 
 mcp = FastMCP("mennbridge")
 
